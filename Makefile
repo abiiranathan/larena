@@ -5,7 +5,7 @@ ASFLAGS = --64
 LDFLAGS = -shared
 
 SRCDIR = src
-INCDIR = include  
+INCDIR = include
 TESTDIR = test
 OBJDIR = obj
 LIBNAME = liblarena
