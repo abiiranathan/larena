@@ -12,13 +12,16 @@ LIBNAME = liblarena
 
 # Source files
 ASM_SOURCES = $(SRCDIR)/larena.s
-C_SOURCES = $(SRCDIR)/larena_c.c
-TEST_SOURCES = $(TESTDIR)/test_larena.c
+# C_SOURCES = $(SRCDIR)/larena_c.c
+
+# Test sources
+TEST_SOURCES = $(wildcard $(TESTDIR)/test_*.c)
+TEST_EXECUTABLES = $(patsubst $(TESTDIR)/%.c,%,$(TEST_SOURCES))
 
 # Object files
 ASM_OBJECTS = $(ASM_SOURCES:$(SRCDIR)/%.s=$(OBJDIR)/%.o)
-C_OBJECTS = $(C_SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
-ALL_OBJECTS = $(ASM_OBJECTS) $(C_OBJECTS)
+# C_OBJECTS = $(C_SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
+ALL_OBJECTS = $(ASM_OBJECTS) # $(C_OBJECTS)
 
 # Targets
 STATIC_LIB = $(LIBNAME).a
@@ -53,12 +56,16 @@ $(STATIC_LIB): $(ALL_OBJECTS)
 $(SHARED_LIB): $(ALL_OBJECTS)
 	$(CC) $(LDFLAGS) -o $@ $^
 
-# Build test
-$(TEST_EXEC): $(TEST_SOURCES) $(STATIC_LIB)
+# Build each test
+$(TEST_EXECUTABLES): %: $(TESTDIR)/%.c $(STATIC_LIB)
 	$(CC) $(CFLAGS) -I$(INCDIR) -o $@ $< -L. -llarena
 
-test: $(TEST_EXEC)
-	./$(TEST_EXEC)
+# Run all tests
+test: $(TEST_EXECUTABLES)
+	@for exec in $(TEST_EXECUTABLES); do \
+		echo "Running $$exec..."; \
+		./$$exec || exit 1; \
+	done
 
 # Install library (requires sudo)
 install: $(STATIC_LIB) $(SHARED_LIB)
